@@ -2,6 +2,7 @@ package rtmp
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/yutopp/go-rtmp"
 	rtmpmsg "github.com/yutopp/go-rtmp/message"
@@ -9,14 +10,19 @@ import (
 
 type Handler struct {
 	rtmp.DefaultHandler
+
+	ChannelId string
+	StreamKey string
 }
 
 func (h *Handler) OnConnect(timestamp uint32, cmd *rtmpmsg.NetConnectionConnect) error {
-	key := cmd.Command.App
+	key := strings.Trim(cmd.Command.App, "/")
 
-	if key != "live" {
-		return errors.New("invalid app name: " + key)
+	if len(key) < 6 || !strings.HasPrefix(key, "live/") {
+		return errors.New("invalid app name: " + key[0:4])
 	}
+
+	h.ChannelId = key[5:]
 
 	return nil
 }
@@ -45,6 +51,8 @@ func (h *Handler) OnPublish(ctx *rtmp.StreamContext, ts uint32, cmd *rtmpmsg.Net
 	if err != nil {
 		return err
 	}
+
+	h.StreamKey = id
 
 	// TODO: 트랜스코드 서버에 grpc 요청하기
 	// (strean_key, user_id, ...)
