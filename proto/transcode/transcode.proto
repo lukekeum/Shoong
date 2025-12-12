@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package transcode;
+
+option go_package = "shoong.com/transcode/proto;proto";
+
+service Transcode {
+  rpc SendData(SendStreamDataRequest) returns (Result);
+}
+
+message SendStreamDataRequest {
+  string uuid = 1;
+  string stream_key = 2; 
+}
+
+message Result {
+  bool result = 1;
+  string message = 2;
+}
